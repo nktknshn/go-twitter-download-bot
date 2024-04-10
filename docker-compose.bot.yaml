@@ -1,0 +1,15 @@
+services:
+  bot:
+    image: go-twitter-download-bot
+    build:
+      context: ./
+      dockerfile: ./Dockerfile
+    volumes:
+      - bot-data:/data
+    command: /cli bot start -d /data/ -f ${FORWARD_TO_ID:-0}
+    environment:
+      - APP_ID=${APP_ID}
+      - APP_HASH=${APP_HASH}
+      - BOT_TOKEN=${BOT_TOKEN}
+volumes:
+  bot-data:

@@ -3,7 +3,7 @@ package cmdtwitter
 import (
 	"fmt"
 
-	"github.com/nktknshn/go-twitter-fun/twitter"
+	"github.com/nktknshn/go-twitter-download-bot/twitter"
 	"github.com/spf13/cobra"
 )
 

@@ -1,8 +1,8 @@
 package cli
 
 import (
-	"github.com/nktknshn/go-twitter-fun/cli/cmdbot"
-	"github.com/nktknshn/go-twitter-fun/cli/cmdtwitter"
+	"github.com/nktknshn/go-twitter-download-bot/cli/cmdbot"
+	"github.com/nktknshn/go-twitter-download-bot/cli/cmdtwitter"
 	"github.com/spf13/cobra"
 )
 

@@ -3,8 +3,8 @@ package cmdbot
 import (
 	"fmt"
 
-	"github.com/nktknshn/go-twitter-fun/bot"
-	"github.com/nktknshn/go-twitter-fun/cli/logging"
+	"github.com/nktknshn/go-twitter-download-bot/bot"
+	"github.com/nktknshn/go-twitter-download-bot/cli/logging"
 	"github.com/spf13/cobra"
 )
 

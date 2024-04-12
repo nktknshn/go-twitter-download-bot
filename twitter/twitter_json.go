@@ -25,6 +25,7 @@ type PhotoData struct {
 
 type TweetData struct {
 	Url    TwitterURL
+	Text   string
 	Videos []VideoData
 	Photos []PhotoData
 }
@@ -56,6 +57,10 @@ func (td *TweetData) Photo() (PhotoData, bool) {
 	return td.Photos[0], true
 }
 
+func (td *TweetData) PhotoCount() int {
+	return len(td.Photos)
+}
+
 func (td *TweetData) HasPhotos() bool {
 	return len(td.Photos) > 0
 }
@@ -75,6 +80,28 @@ func (td *TweetData) VideoBestBitrate() (VideoData, bool) {
 
 	return best, true
 }
+
+func ParseData(json any) (*TweetData, error) {
+
+	data := &TweetData{}
+
+	switch concreteVal := json.(type) {
+	case map[string]interface{}:
+		parseMap(data, concreteVal)
+	case []interface{}:
+		parseArray(data, concreteVal)
+	default:
+		return nil, errors.New("Invalid JSON")
+	}
+
+	return data, nil
+}
+
+func (td *TweetData) String() string {
+	return fmt.Sprintf("Videos: %v, Photos: %v, Text: %s", td.Videos, td.Photos, td.Text)
+}
+
+// parsing functions
 
 func hasKey(aMap map[string]interface{}, key string) bool {
 	_, ok := aMap[key]
@@ -154,6 +181,14 @@ func tryParseVideoData(aMap map[string]interface{}) (VideoData, bool) {
 	return vd, true
 }
 
+func tryParseFullText(aMap map[string]interface{}) (string, bool) {
+	if fullText, ok := tryGetKeyString(aMap, "full_text"); ok {
+		return fullText, true
+	}
+
+	return "", false
+}
+
 func parseMap(d *TweetData, aMap map[string]interface{}) {
 
 	if vd, ok := tryParseVideoData(aMap); ok {
@@ -164,6 +199,10 @@ func parseMap(d *TweetData, aMap map[string]interface{}) {
 	if pd, ok := tryParsePhotoData(aMap); ok {
 		d.AddPhoto(pd)
 		return
+	}
+
+	if ft, ok := tryParseFullText(aMap); ok {
+		d.Text = ft
 	}
 
 	for _, val := range aMap {
@@ -194,24 +233,4 @@ func parseArray(d *TweetData, anArray []interface{}) {
 
 		}
 	}
-}
-
-func ParseData(json any) (*TweetData, error) {
-
-	data := &TweetData{}
-
-	switch concreteVal := json.(type) {
-	case map[string]interface{}:
-		parseMap(data, concreteVal)
-	case []interface{}:
-		parseArray(data, concreteVal)
-	default:
-		return nil, errors.New("Invalid JSON")
-	}
-
-	return data, nil
-}
-
-func (td *TweetData) String() string {
-	return fmt.Sprintf("Videos: %v, Photos: %v", td.Videos, td.Photos)
 }

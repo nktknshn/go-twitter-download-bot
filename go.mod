@@ -1,17 +1,19 @@
-module github.com/nktknshn/go-twitter-fun
+module github.com/nktknshn/go-twitter-download-bot
 
 go 1.21.6
 
-replace github.com/nktknshn/mypggorm => ../mypggorm
-
 require (
 	github.com/go-faster/errors v0.7.1
+	github.com/gotd/contrib v0.19.0
 	github.com/gotd/td v0.99.2
 	github.com/stretchr/testify v1.9.0
+	go.uber.org/ratelimit v0.3.0
 	go.uber.org/zap v1.27.0
+	golang.org/x/time v0.5.0
 )
 
 require (
+	github.com/benbjohnson/clock v1.3.0 // indirect
 	github.com/inconshreveable/mousetrap v1.1.0 // indirect
 	github.com/spf13/pflag v1.0.5 // indirect
 )

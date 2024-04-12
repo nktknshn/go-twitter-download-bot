@@ -7,7 +7,7 @@ import (
 	"github.com/gotd/td/telegram/message"
 	"github.com/gotd/td/telegram/message/unpack"
 	"github.com/gotd/td/tg"
-	"github.com/nktknshn/go-twitter-fun/twitter"
+	"github.com/nktknshn/go-twitter-download-bot/twitter"
 	"go.uber.org/zap"
 )
 
@@ -49,20 +49,41 @@ func (h *Handler) Handle(ctx context.Context, u tg.UpdatesClass) error {
 	return h.Dispatcher.Handle(ctx, u)
 }
 
+func (h *Handler) OnNewMessage(ctx context.Context, entities tg.Entities, u *tg.UpdateNewMessage) error {
+	m, ok := u.Message.(*tg.Message)
+
+	if !ok {
+		return nil
+	}
+
+	if m.Out {
+		return nil
+	}
+
+	user, ok := m.PeerID.(*tg.PeerUser)
+
+	if !ok {
+		return nil
+	}
+
+	// if user.UserID != h.AdminID {
+	// not used in this bot
+	// 	return nil
+	// }
+
+	if m.Message == "" {
+		return nil
+	}
+
+	return h.OnNewMessageTextFromUser(ctx, entities, user, m)
+}
+
 func (h *Handler) OnStart(ctx context.Context, entities tg.Entities, user *tg.PeerUser, m *tg.Message) error {
 	msg := "Отправь ссылку на пост в твиттер и я скачаю фото или видео.\nSend me a link to a tweet and I will download the photo or video."
 	if _, err := h.ReplyText(ctx, user, msg); err != nil {
 		h.Logger.Error("failed to send message", zap.Error(err))
 	}
 	return nil
-}
-
-func (h *Handler) ReplyText(ctx context.Context, user *tg.PeerUser, text string) (*tg.Message, error) {
-	return unpack.Message(h.Sender.To(h.inputUser(user)).Text(ctx, text))
-}
-
-func (h *Handler) ReplyError(ctx context.Context, user *tg.PeerUser, err error, msg string) {
-	_, _ = h.ReplyText(ctx, user, "Ошибка. Error. "+msg)
 }
 
 func (h *Handler) OnNewMessageTextFromUser(ctx context.Context, entities tg.Entities, user *tg.PeerUser, m *tg.Message) error {
@@ -75,4 +96,12 @@ func (h *Handler) OnNewMessageTextFromUser(ctx context.Context, entities tg.Enti
 	}
 
 	return h.OnTwitterURLFromUser(ctx, entities, user, m)
+}
+
+func (h *Handler) ReplyText(ctx context.Context, user *tg.PeerUser, text string) (*tg.Message, error) {
+	return unpack.Message(h.Sender.To(h.inputUser(user)).Text(ctx, text))
+}
+
+func (h *Handler) ReplyError(ctx context.Context, user *tg.PeerUser, err error, msg string) {
+	_, _ = h.ReplyText(ctx, user, "Ошибка. Error. "+msg)
 }

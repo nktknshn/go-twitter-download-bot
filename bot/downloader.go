@@ -3,7 +3,7 @@ package bot
 import (
 	"github.com/go-faster/errors"
 	"github.com/go-resty/resty/v2"
-	"github.com/nktknshn/go-twitter-fun/cli/logging"
+	"github.com/nktknshn/go-twitter-download-bot/cli/logging"
 	"go.uber.org/zap"
 )
 

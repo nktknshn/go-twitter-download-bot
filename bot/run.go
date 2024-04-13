@@ -87,14 +87,8 @@ func Run(ctx context.Context,
 			func(ctx context.Context, client *telegram.Client) error {
 				handler.Logger.Info("Connected")
 
-				if err := handler.InitSelfUsername(ctx); err != nil {
+				if err := handler.InitTelegram(ctx); err != nil {
 					return errors.Wrap(err, "failed to get self username")
-				}
-
-				if handler.ForwardTo != 0 {
-					if err := handler.InitChannelAccessHash(ctx); err != nil {
-						return errors.Wrap(err, "failed to get channel access hash")
-					}
 				}
 
 				return telegram.RunUntilCanceled(ctx, client)

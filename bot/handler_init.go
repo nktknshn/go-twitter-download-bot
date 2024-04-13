@@ -7,6 +7,22 @@ import (
 	"github.com/gotd/td/tg"
 )
 
+func (h *Handler) InitTelegram(ctx context.Context) error {
+	if err := h.InitSelfUsername(ctx); err != nil {
+		return errors.Wrap(err, "init self username")
+	}
+
+	if h.ForwardTo == 0 {
+		return nil
+	}
+
+	if err := h.InitChannelAccessHash(ctx); err != nil {
+		return errors.Wrap(err, "init channel access hash")
+	}
+
+	return nil
+}
+
 func (h *Handler) InitSelfUsername(ctx context.Context) error {
 	if h.selfUsername != "" {
 		return nil

@@ -1,146 +1,80 @@
 package twitter
 
-import (
-	"encoding/json"
-	"fmt"
-
-	"github.com/go-faster/errors"
-)
-
-//{
-//	"bitrate": 632000,
-//  "content_type": "video/mp4",
-//	"url": "https://video.twimg.com/ext_tw_video/1742758051872960512/pu/vid/avc1/320x568/39j_OueTsS4i2p8-.mp4?tag=12"
-//}
-
-type VideoData struct {
-	Bitrate     int    `json:"bitrate"`
-	ContentType string `json:"content_type"`
-	URL         string `json:"url"`
+type TwitterParser struct {
+	d TweetData
 }
 
-type PhotoData struct {
-	MediaURLHttps string `json:"media_url_https"`
+func (tp *TwitterParser) Parse(a interface{}) TweetData {
+	parse(tp, a)
+	return tp.d
 }
 
-type TweetData struct {
-	Url    TwitterURL
-	Text   string
-	Videos []VideoData
-	Photos []PhotoData
-}
+func (tp *TwitterParser) ParseMap(aMap map[string]interface{}) {
 
-func (td *TweetData) AddPhoto(pd PhotoData) {
-
-	for _, p := range td.Photos {
-		if p.MediaURLHttps == pd.MediaURLHttps {
-			return
-		}
+	if vd, ok := tryParseVideo(aMap); ok {
+		tp.d.AddVideo(vd)
+		return
 	}
 
-	td.Photos = append(td.Photos, pd)
-}
-
-func (td *TweetData) AddVideo(vd VideoData) {
-	td.Videos = append(td.Videos, vd)
-}
-
-func (td *TweetData) HasVideos() bool {
-	return len(td.Videos) > 0
-}
-
-func (td *TweetData) Photo() (PhotoData, bool) {
-	if len(td.Photos) == 0 {
-		return PhotoData{}, false
+	if pd, ok := tryParsePhotoData(aMap); ok {
+		tp.d.AddPhoto(pd)
+		return
 	}
 
-	return td.Photos[0], true
-}
-
-func (td *TweetData) PhotoCount() int {
-	return len(td.Photos)
-}
-
-func (td *TweetData) HasPhotos() bool {
-	return len(td.Photos) > 0
-}
-
-func (td *TweetData) VideoBestBitrate() (VideoData, bool) {
-	if len(td.Videos) == 0 {
-		return VideoData{}, false
+	if ft, ok := tryParseFullText(aMap); ok {
+		tp.d.Text = ft
 	}
 
-	best := td.Videos[0]
+	// go deeper
+	parseMap(tp, aMap)
+}
 
-	for _, v := range td.Videos {
-		if v.Bitrate > best.Bitrate {
-			best = v
-		}
+// parse video with variants
+func tryParseVideo(aMap map[string]interface{}) (Video, bool) {
+	res := Video{}
+
+	if v, _ := tryGetKeyString(aMap, "type"); v != "video" {
+		return res, false
 	}
 
-	return best, true
-}
-
-func ParseData(json any) (*TweetData, error) {
-
-	data := &TweetData{}
-
-	switch concreteVal := json.(type) {
-	case map[string]interface{}:
-		parseMap(data, concreteVal)
-	case []interface{}:
-		parseArray(data, concreteVal)
-	default:
-		return nil, errors.New("Invalid JSON")
+	if v, ok := tryGetKeyString(aMap, "media_key"); ok {
+		res.MediaKey = v
+	} else {
+		return res, false
 	}
 
-	return data, nil
-}
-
-func (td *TweetData) String() string {
-	return fmt.Sprintf("Videos: %v, Photos: %v, Text: %s", td.Videos, td.Photos, td.Text)
-}
-
-// parsing functions
-
-func hasKey(aMap map[string]interface{}, key string) bool {
-	_, ok := aMap[key]
-	return ok
-}
-
-func tryGetKeyString(aMap map[string]interface{}, key string) (string, bool) {
-	val, ok := aMap[key]
-	if ok {
-		str, ok := val.(string)
-
-		if ok {
-			return str, true
-		}
+	if !hasKey(aMap, "video_info") {
+		return res, false
 	}
-	return "", false
-}
 
-func tryGetKeyInt(aMap map[string]interface{}, key string) (int, bool) {
-	val, ok := aMap[key]
-	if ok {
-		num, ok := val.(json.Number)
-
-		n, err := num.Int64()
-
-		if err != nil {
-			return 0, false
-		}
-
-		if ok {
-			return int(n), true
-		}
+	if m, ok := aMap["video_info"].(map[string]interface{}); ok {
+		vp := variantsParser{}
+		vp.ParseMap(m)
+		res.Variants = vp.variants
+		return res, true
 	}
-	return 0, false
 
+	return res, false
 }
 
-func tryParsePhotoData(aMap map[string]interface{}) (PhotoData, bool) {
-	id := PhotoData{}
+type variantsParser struct {
+	variants VideoVariants
+}
+
+func (vp *variantsParser) ParseMap(aMap map[string]interface{}) {
+	if vd, ok := tryParseVideoData(aMap); ok {
+		vp.variants = append(vp.variants, vd)
+		return
+	}
+	parseMap(vp, aMap)
+}
+
+func (vp *variantsParser) ParseArray(anArray []interface{}) {
+	parseArray(vp, anArray)
+}
+
+func tryParsePhotoData(aMap map[string]interface{}) (Photo, bool) {
+	id := Photo{}
 
 	if mediaURLHttps, ok := tryGetKeyString(aMap, "media_url_https"); ok {
 		id.MediaURLHttps = mediaURLHttps
@@ -157,8 +91,8 @@ func tryParsePhotoData(aMap map[string]interface{}) (PhotoData, bool) {
 	return id, true
 }
 
-func tryParseVideoData(aMap map[string]interface{}) (VideoData, bool) {
-	vd := VideoData{}
+func tryParseVideoData(aMap map[string]interface{}) (VideoVariant, bool) {
+	vd := VideoVariant{}
 
 	if bitrate, ok := tryGetKeyInt(aMap, "bitrate"); ok {
 		vd.Bitrate = bitrate
@@ -173,7 +107,7 @@ func tryParseVideoData(aMap map[string]interface{}) (VideoData, bool) {
 	}
 
 	if url, ok := tryGetKeyString(aMap, "url"); ok {
-		vd.URL = url
+		vd.VideoURL = url
 	} else {
 		return vd, false
 	}
@@ -189,48 +123,6 @@ func tryParseFullText(aMap map[string]interface{}) (string, bool) {
 	return "", false
 }
 
-func parseMap(d *TweetData, aMap map[string]interface{}) {
-
-	if vd, ok := tryParseVideoData(aMap); ok {
-		d.AddVideo(vd)
-		return
-	}
-
-	if pd, ok := tryParsePhotoData(aMap); ok {
-		d.AddPhoto(pd)
-		return
-	}
-
-	if ft, ok := tryParseFullText(aMap); ok {
-		d.Text = ft
-	}
-
-	for _, val := range aMap {
-		switch concreteVal := val.(type) {
-		case map[string]interface{}:
-			//fmt.Println(key)
-			parseMap(d, concreteVal)
-		case []interface{}:
-			//fmt.Println(key)
-			parseArray(d, concreteVal)
-		default:
-			//fmt.Println(key, ":", concreteVal)
-		}
-	}
-}
-
-func parseArray(d *TweetData, anArray []interface{}) {
-	for _, val := range anArray {
-		switch concreteVal := val.(type) {
-		case map[string]interface{}:
-			//fmt.Println("Index:", i)
-			parseMap(d, concreteVal)
-		case []interface{}:
-			//fmt.Println("Index:", i)
-			parseArray(d, concreteVal)
-		default:
-			//fmt.Println("Index", i, ":", concreteVal)
-
-		}
-	}
+func (tp *TwitterParser) ParseArray(anArray []interface{}) {
+	parseArray(tp, anArray)
 }

@@ -33,7 +33,7 @@ func (h *Handler) InitSelfUsername(ctx context.Context) error {
 }
 
 func (h *Handler) InitChannelAccessHash(ctx context.Context) error {
-	if h.UploadTo == 0 {
+	if h.ForwardTo == 0 {
 		return errors.New("channel id is not set")
 	}
 
@@ -42,7 +42,7 @@ func (h *Handler) InitChannelAccessHash(ctx context.Context) error {
 	}
 
 	chatsClass, err := h.Api.ChannelsGetChannels(ctx, []tg.InputChannelClass{
-		&tg.InputChannel{ChannelID: h.UploadTo},
+		&tg.InputChannel{ChannelID: h.ForwardTo},
 	})
 
 	if err != nil {

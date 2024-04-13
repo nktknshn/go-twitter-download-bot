@@ -7,6 +7,10 @@ type options struct {
 	debugTelegram  bool
 	forwardTo      int64
 	useRateLimiter bool
+	sessionFile    string
+
+	includeText bool
+	includeURL  bool
 }
 
 type option func(*options)
@@ -32,5 +36,18 @@ func WithForwardTo(forwardTo int64) option {
 func WithRateLimiter(useRateLimiter bool) option {
 	return func(opts *options) {
 		opts.useRateLimiter = useRateLimiter
+	}
+}
+
+func WithSessionFile(sessionFile string) option {
+	return func(opts *options) {
+		opts.sessionFile = sessionFile
+	}
+}
+
+func WithPostSettings(includeText, includeURL bool) option {
+	return func(opts *options) {
+		opts.includeText = includeText
+		opts.includeURL = includeURL
 	}
 }

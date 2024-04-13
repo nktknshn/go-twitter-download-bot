@@ -20,7 +20,7 @@ type Handler struct {
 
 	DebugTelegram      bool
 	AdminID            int64
-	UploadTo           int64
+	ForwardTo          int64
 	UploadToAccessHash int64
 	DownloadFolder     string
 
@@ -28,6 +28,9 @@ type Handler struct {
 	downloader *Downloader
 
 	selfUsername string
+
+	includeText bool
+	includeURL  bool
 }
 
 func (h *Handler) botName() string {
@@ -80,7 +83,7 @@ func (h *Handler) OnNewMessage(ctx context.Context, entities tg.Entities, u *tg.
 
 func (h *Handler) OnStart(ctx context.Context, entities tg.Entities, user *tg.PeerUser, m *tg.Message) error {
 	msg := "Отправь ссылку на пост в твиттер и я скачаю фото или видео.\nSend me a link to a tweet and I will download the photo or video."
-	if _, err := h.ReplyText(ctx, user, msg); err != nil {
+	if _, err := h.SendText(ctx, user, msg); err != nil {
 		h.Logger.Error("failed to send message", zap.Error(err))
 	}
 	return nil
@@ -98,10 +101,10 @@ func (h *Handler) OnNewMessageTextFromUser(ctx context.Context, entities tg.Enti
 	return h.OnTwitterURLFromUser(ctx, entities, user, m)
 }
 
-func (h *Handler) ReplyText(ctx context.Context, user *tg.PeerUser, text string) (*tg.Message, error) {
+func (h *Handler) SendText(ctx context.Context, user *tg.PeerUser, text string) (*tg.Message, error) {
 	return unpack.Message(h.Sender.To(h.inputUser(user)).Text(ctx, text))
 }
 
 func (h *Handler) ReplyError(ctx context.Context, user *tg.PeerUser, err error, msg string) {
-	_, _ = h.ReplyText(ctx, user, "Ошибка. Error. "+msg)
+	_, _ = h.SendText(ctx, user, "Ошибка. Error. "+msg+"Попробуйте отправить ещё раз. Try Again.")
 }

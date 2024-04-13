@@ -56,6 +56,7 @@ type Twitter struct {
 
 type Options struct {
 	httpClient *resty.Client
+	retryCount int
 }
 
 type Option func(*Options)
@@ -66,17 +67,30 @@ func DefaultResty() *resty.Client {
 	return r
 }
 
+func WithRestyClient(r *resty.Client) Option {
+	return func(o *Options) {
+		o.httpClient = r
+	}
+}
+
+func WithRetryCount(n int) Option {
+	return func(o *Options) {
+		o.retryCount = n
+	}
+}
+
 func NewTwitter(opts ...Option) *Twitter {
 
-	options := &Options{}
+	options := &Options{
+		retryCount: 3,
+		httpClient: DefaultResty(),
+	}
 
 	for _, opt := range opts {
 		opt(options)
 	}
 
-	if options.httpClient == nil {
-		options.httpClient = DefaultResty().SetRetryCount(3)
-	}
+	options.httpClient.SetRetryCount(options.retryCount)
 
 	return &Twitter{
 		httpClient: options.httpClient,
@@ -195,6 +209,7 @@ func (t *Twitter) GetURLJSON(ctx context.Context, posturl string) ([]byte, error
 }
 
 func (t *Twitter) GetTwitterData(ctx context.Context, url string) (*TweetData, error) {
+	p := TwitterParser{}
 	turl, err := ParseTwitterURL(url)
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to parse twitter url")
@@ -207,11 +222,7 @@ func (t *Twitter) GetTwitterData(ctx context.Context, url string) (*TweetData, e
 	if err := JsonDecodeWithNumberBytes(body, &jsonBody); err != nil {
 		return nil, errors.Wrap(err, "failed to unmarshal json")
 	}
-	td, err := ParseData(jsonBody)
-	if err != nil {
-		return nil, errors.Wrap(err, "failed to parse data")
-	}
+	td := p.Parse(jsonBody)
 	td.Url = turl
-	return td, nil
-
+	return &td, nil
 }

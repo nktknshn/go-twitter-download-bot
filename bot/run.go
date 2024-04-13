@@ -26,6 +26,7 @@ func Run(ctx context.Context,
 		forwardTo:      0,
 		useRateLimiter: true,
 		debugTelegram:  false,
+		sessionFile:    "twitter-downloader-session.json",
 	}
 
 	for _, opt := range opts {
@@ -37,8 +38,10 @@ func Run(ctx context.Context,
 		Dispatcher:     tg.NewUpdateDispatcher(),
 		DownloadFolder: downloadFolder,
 		AdminID:        adminID,
-		UploadTo:       options.forwardTo,
+		ForwardTo:      options.forwardTo,
 		DebugTelegram:  options.debugTelegram,
+		includeText:    options.includeText,
+		includeURL:     options.includeURL,
 	}
 
 	tgLogger := zap.NewNop()
@@ -63,7 +66,7 @@ func Run(ctx context.Context,
 		Logger:        tgLogger,
 		UpdateHandler: handler,
 		SessionStorage: &session.FileStorage{
-			Path: "twitter-downloader-session.json",
+			Path: options.sessionFile,
 		},
 		Device: telegram.DeviceConfig{
 			DeviceModel:    "pc",
@@ -88,7 +91,7 @@ func Run(ctx context.Context,
 					return errors.Wrap(err, "failed to get self username")
 				}
 
-				if handler.UploadTo != 0 {
+				if handler.ForwardTo != 0 {
 					if err := handler.InitChannelAccessHash(ctx); err != nil {
 						return errors.Wrap(err, "failed to get channel access hash")
 					}

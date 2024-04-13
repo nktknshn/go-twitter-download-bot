@@ -14,16 +14,26 @@ var (
 	flagAdminID        int64
 	flagForwardTo      int64
 	flagDebug          bool
+	flagSessionFile    string = "twitter-downloader-session.json"
+	flagUseLimiter     bool
+
+	flagIncludeText bool
+	flagIncludeURL  bool
 )
 
 func init() {
 	CmdBot.AddCommand(cmdStart)
 
-	cmdStart.PersistentFlags().StringVarP(&flagDownloadFolder, "download-folder", "d", "", "download folder")
 	// cmdStart.PersistentFlags().Int64VarP(&flagAdminID, "admin-id", "a", 0, "admin id")
+
+	cmdStart.PersistentFlags().StringVarP(&flagSessionFile, "session-file", "s", flagSessionFile, "session file")
+	cmdStart.PersistentFlags().StringVarP(&flagDownloadFolder, "download-folder", "d", "", "download folder")
 	cmdStart.PersistentFlags().Int64VarP(&flagForwardTo, "forward-to", "f", 0, "forward media that was sent to a user to a channel")
 	cmdStart.PersistentFlags().BoolVarP(&flagDebug, "debug-telegram", "D", false, "debug log")
+	cmdStart.PersistentFlags().BoolVarP(&flagUseLimiter, "use-limiter", "l", true, "use rate limiter")
 
+	cmdStart.PersistentFlags().BoolVarP(&flagIncludeText, "include-text", "T", false, "include text")
+	cmdStart.PersistentFlags().BoolVarP(&flagIncludeURL, "include-url", "U", false, "include url")
 }
 
 var CmdBot = &cobra.Command{
@@ -52,5 +62,8 @@ func runStart(cmd *cobra.Command, args []string) error {
 		flagDownloadFolder,
 		bot.WithForwardTo(flagForwardTo),
 		bot.WithDebugTelegram(flagDebug),
+		bot.WithRateLimiter(flagUseLimiter),
+		bot.WithSessionFile(flagSessionFile),
+		bot.WithPostSettings(flagIncludeText, flagIncludeURL),
 	)
 }

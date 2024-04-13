@@ -1,9 +1,12 @@
 package bot
 
 import (
+	"path"
+
 	"github.com/go-faster/errors"
 	"github.com/go-resty/resty/v2"
 	"github.com/nktknshn/go-twitter-download-bot/cli/logging"
+	"github.com/nktknshn/go-twitter-download-bot/twitter"
 	"go.uber.org/zap"
 )
 
@@ -20,6 +23,58 @@ func NewDownloader() *Downloader {
 		// could have used resty.New().SetRetryCount(3),
 		Retries: 3,
 	}
+}
+
+type Downloaded struct {
+	Path   string
+	Entity Downloadable
+}
+
+func (d Downloaded) IsPhoto() bool {
+	_, ok := d.Entity.(twitter.Photo)
+	return ok
+}
+
+func (d Downloaded) IsVideo() bool {
+	_, ok := d.Entity.(twitter.VideoVariant)
+	return ok
+}
+
+func (d *Downloader) Filename(td *twitter.TweetData, withfn interface{ Filename() string }) string {
+	return td.Url.User + "_" + td.Url.ID + "_" + withfn.Filename()
+}
+
+type Downloadable interface {
+	Filename() string
+	URL() string
+}
+
+func (d *Downloader) DownloadTweetData(td *twitter.TweetData, destDir string) ([]Downloaded, error) {
+
+	var toDownload = make([]Downloadable, 0, 4)
+	var downloads []Downloaded
+
+	for _, p := range td.Photos {
+		toDownload = append(toDownload, p)
+	}
+
+	for _, v := range td.Videos {
+		best, ok := v.Variants.VideoBestBitrate()
+		if !ok {
+			continue
+		}
+		toDownload = append(toDownload, best)
+	}
+
+	for _, p := range toDownload {
+		path := path.Join(destDir, d.Filename(td, p))
+		if err := d.Download(p.URL(), path); err != nil {
+			return nil, errors.Wrap(err, "failed to download photo")
+		}
+		downloads = append(downloads, Downloaded{Path: path, Entity: p})
+	}
+
+	return downloads, nil
 }
 
 // path must include filename

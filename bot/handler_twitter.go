@@ -71,7 +71,7 @@ func (h *Handler) OnTwitterURLFromUser(ctx context.Context, entities tg.Entities
 
 	if err != nil {
 		h.Logger.Error("send media group", zap.Error(err))
-		h.ReplyError(ctx, user, err, "Ошибка отправки медигруппа в телеграм. Error sending media group.")
+		h.ReplyError(ctx, user, err, "Ошибка отправки медигруппы в телеграм. Error sending media group.")
 		return errors.Wrap(err, "send media group")
 	}
 

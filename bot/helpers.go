@@ -17,7 +17,6 @@ func UnpackMultipleMessages(update tg.UpdatesClass, err error) ([]*tg.Message, e
 		updates = v.GetUpdates()
 	case *tg.Updates:
 		updates = v.GetUpdates()
-
 	default:
 		return nil, errors.Errorf("unexpected type %T", update)
 	}

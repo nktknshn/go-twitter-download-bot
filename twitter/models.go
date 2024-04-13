@@ -78,7 +78,6 @@ func (td *TweetData) BestBitrateVideos() []VideoVariant {
 }
 
 func (td *TweetData) String() string {
-
 	return fmt.Sprintf("Videos: %v, Photos: %v, Text: %s", td.BestBitrateVideos(), td.Photos, td.CleanText())
 }
 

@@ -116,7 +116,7 @@ func tryParseVideoData(aMap map[string]interface{}) (VideoVariant, bool) {
 }
 
 func tryParseFullText(aMap map[string]interface{}) (string, bool) {
-	if fullText, ok := tryGetKeyString(aMap, "full_text"); ok {
+	if fullText, ok := tryGetKeyString(aMap, "text"); ok {
 		return fullText, true
 	}
 

@@ -111,15 +111,6 @@ func (td *TweetData) HasVideos() bool {
 	return len(td.Videos) > 0
 }
 
-// more than one photo
-func (td *TweetData) PhotoMany() ([]Photo, bool) {
-	if len(td.Photos) == 0 {
-		return nil, false
-	}
-
-	return td.Photos, true
-}
-
 func (td *TweetData) Photo() (Photo, bool) {
 	if len(td.Photos) == 0 {
 		return Photo{}, false

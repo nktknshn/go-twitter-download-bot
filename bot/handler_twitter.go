@@ -7,7 +7,6 @@ import (
 	"github.com/go-faster/errors"
 	"github.com/gotd/td/telegram/message"
 	"github.com/gotd/td/telegram/message/styling"
-	"github.com/gotd/td/telegram/message/unpack"
 	"github.com/gotd/td/tg"
 	"github.com/nktknshn/go-twitter-download-bot/twitter"
 	"go.uber.org/zap"
@@ -107,10 +106,13 @@ func (h *Handler) OnTwitterURLFromUser(ctx context.Context, entities tg.Entities
 		return errors.Wrap(err, "upload files")
 	}
 
-	sentMsg, err := unpack.Message(
-		h.Sender.To(peer).
-			Album(ctx, uploads[0], uploads[1:]...),
-	)
+	// sentMsg, err := unpack.MessageClass(
+	// 	h.Sender.To(peer).
+	// 		Album(ctx, uploads[0], uploads[1:]...),
+	// )
+
+	sentMsgs, err := UnpackMultipleMessages(h.Sender.To(peer).
+		Album(ctx, uploads[0], uploads[1:]...))
 
 	if err != nil {
 		h.Logger.Error("send media group", zap.Error(err))
@@ -118,14 +120,22 @@ func (h *Handler) OnTwitterURLFromUser(ctx context.Context, entities tg.Entities
 		return errors.Wrap(err, "send media group")
 	}
 
+	// h.Logger.Debug("Sent message", zap.Any("msg", sentMsgs))
+
 	if h.ForwardTo == 0 {
 		return nil
+	}
+
+	sentMsgsIDs := make([]int, len(sentMsgs))
+
+	for i, sentMsg := range sentMsgs {
+		sentMsgsIDs[i] = sentMsg.ID
 	}
 
 	h.Logger.Info("Forwarding to channel", zap.Int64("channel", h.ForwardTo))
 
 	_, err = h.Sender.To(h.inputChannelPeer()).
-		ForwardMessages(h.inputUser(user), sentMsg).
+		ForwardIDs(h.inputUser(user), sentMsgsIDs[0], sentMsgsIDs[1:]...).
 		Send(ctx)
 
 	if err != nil {

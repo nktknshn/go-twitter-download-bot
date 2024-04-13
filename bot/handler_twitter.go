@@ -106,11 +106,6 @@ func (h *Handler) OnTwitterURLFromUser(ctx context.Context, entities tg.Entities
 		return errors.Wrap(err, "upload files")
 	}
 
-	// sentMsg, err := unpack.MessageClass(
-	// 	h.Sender.To(peer).
-	// 		Album(ctx, uploads[0], uploads[1:]...),
-	// )
-
 	sentMsgs, err := UnpackMultipleMessages(h.Sender.To(peer).
 		Album(ctx, uploads[0], uploads[1:]...))
 
@@ -119,8 +114,6 @@ func (h *Handler) OnTwitterURLFromUser(ctx context.Context, entities tg.Entities
 		h.ReplyError(ctx, user, err, "Ошибка отправки медигруппа в телеграм. Error sending media group.")
 		return errors.Wrap(err, "send media group")
 	}
-
-	// h.Logger.Debug("Sent message", zap.Any("msg", sentMsgs))
 
 	if h.ForwardTo == 0 {
 		return nil

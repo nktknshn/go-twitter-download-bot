@@ -7,28 +7,9 @@ import (
 	"github.com/go-faster/errors"
 	"github.com/gotd/td/telegram/message"
 	"github.com/gotd/td/telegram/message/styling"
-	"github.com/gotd/td/telegram/message/unpack"
 	"github.com/gotd/td/telegram/uploader"
-	"github.com/gotd/td/tg"
+	"go.uber.org/zap"
 )
-
-type Filetype string
-
-const (
-	FiletypePhoto Filetype = "photo"
-	FiletypeVideo Filetype = "video"
-)
-
-func (h *Handler) Upload(ctx context.Context, filepaths []string, filetype Filetype, title string, user tg.InputPeerClass) (*tg.Message, error) {
-	if filetype == FiletypePhoto {
-		return h.SendPhotos(ctx, filepaths, title, user)
-	} else if filetype == FiletypeVideo {
-		return h.SendVideos(ctx, filepaths, title, user)
-	}
-
-	return nil, errors.New("unknown filetype")
-
-}
 
 func (h *Handler) uploader() *uploader.Uploader {
 	return uploader.NewUploader(h.Api)
@@ -40,65 +21,39 @@ func (h *Handler) uploaderWithSender() (*uploader.Uploader, *message.Sender) {
 	return uploader, sender
 }
 
-func (h *Handler) SendPhotos(ctx context.Context, filepaths []string, title string, user tg.InputPeerClass) (*tg.Message, error) {
-	uploader, sender := h.uploaderWithSender()
+func (h *Handler) uploadDownloads(ctx context.Context, downloads []Downloaded, caption string) ([]message.MultiMediaOption, error) {
 
-	if len(filepaths) == 0 {
-		return nil, errors.New("no files to upload")
-	}
+	uploader, _ := h.uploaderWithSender()
+	uploads := make([]message.MultiMediaOption, len(downloads))
 
-	uploads := make([]tg.InputFileClass, len(filepaths))
+	for i, download := range downloads {
+		h.Logger.Info("Uploading media", zap.String("path", download.Path))
 
-	for i, path := range filepaths {
-		u, err := uploader.FromPath(ctx, path)
-
+		u, err := uploader.FromPath(ctx, download.Path)
 		if err != nil {
-			return nil, errors.Wrap(err, "failed to upload")
+			return nil, errors.Wrap(err, "upload media")
 		}
 
-		uploads[i] = u
-	}
+		st := []styling.StyledTextOption{}
 
-	if len(uploads) == 1 {
-		doc := message.UploadedPhoto(uploads[0], styling.Plain(title))
-		msg, err := unpack.Message(sender.To(user).Media(ctx, doc))
-		if err != nil {
-			return nil, errors.Wrap(err, "failed to send")
+		if i == 0 {
+			// https://core.telegram.org/api/files#albums-grouped-media
+			// For photo albums, clients should display an album caption only if exactly one photo in the group has a caption, otherwise no album caption should be displayed, and only when viewing in detail a specific photo of the group the caption should be shown.
+			// so we add caption to the first message
+			st = []styling.StyledTextOption{styling.Plain(caption)}
 		}
-		return msg, nil
+
+		if download.IsPhoto() {
+			uploads[i] = message.UploadedPhoto(u, st...)
+		} else if download.IsVideo() {
+			doc := message.UploadedDocument(u, st...)
+			doc.Filename(path.Base(download.Path))
+			doc.MIME("video/mp4")
+			uploads[i] = doc
+		} else {
+			return nil, errors.New("unsupported media type")
+		}
 	}
 
-	builders := make([]message.MultiMediaOption, len(uploads))
-
-	for i, upload := range uploads {
-		builders[i] = message.UploadedPhoto(upload, styling.Plain(title))
-	}
-
-	msg, err := unpack.Message(sender.To(user).Album(ctx, builders[0], builders[1:]...))
-
-	if err != nil {
-		return nil, errors.Wrap(err, "failed to send")
-	}
-
-	return msg, nil
-}
-
-func (h *Handler) SendVideos(ctx context.Context, filepaths []string, title string, user tg.InputPeerClass) (*tg.Message, error) {
-	uploader, sender := h.uploaderWithSender()
-	u, err := uploader.FromPath(ctx, filepaths[0])
-
-	if err != nil {
-		return nil, errors.Wrap(err, "failed to upload")
-	}
-
-	doc := message.UploadedDocument(u, styling.Plain(title))
-	doc.Filename(path.Base(filepaths[0]))
-	doc.MIME("video/mp4")
-
-	msg, err := unpack.Message(sender.To(user).Media(ctx, doc))
-
-	if err != nil {
-		return nil, errors.Wrap(err, "failed to send")
-	}
-	return msg, nil
+	return uploads, nil
 }

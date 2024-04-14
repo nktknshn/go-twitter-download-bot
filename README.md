@@ -8,7 +8,7 @@ Built with awesome https://github.com/gotd/td
 
 ```bash
 export APP_ID=111 APP_HASH=abcdef BOT_TOKEN=12345:abcdef
-go run main.go bot start -d /data_folder -s -d /data_folder/session.json
+go run main.go bot start -d /data_folder -s /data_folder/session.json
 
   -a, --admin-id int             admin id (optional)
   -r, --restrict-to-admin-id     restrict usage to admin id

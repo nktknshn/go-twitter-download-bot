@@ -3,8 +3,12 @@ package bot
 import "go.uber.org/zap"
 
 type options struct {
-	logger         *zap.Logger
-	debugTelegram  bool
+	logger        *zap.Logger
+	debugTelegram bool
+
+	adminID         int64
+	restrictToAdmin bool
+
 	forwardTo      int64
 	useRateLimiter bool
 	sessionFile    string
@@ -28,6 +32,13 @@ func WithLogger(logger *zap.Logger) option {
 func WithDebugTelegram(debug bool) option {
 	return func(opts *options) {
 		opts.debugTelegram = debug
+	}
+}
+
+func WithAdmin(adminID int64, restrict bool) option {
+	return func(opts *options) {
+		opts.adminID = adminID
+		opts.restrictToAdmin = restrict
 	}
 }
 

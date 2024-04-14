@@ -21,8 +21,10 @@ type Handler struct {
 	Api        *tg.Client
 	Sender     *message.Sender
 
-	DebugTelegram      bool
-	AdminID            int64
+	DebugTelegram     bool
+	AdminID           int64
+	RestrictToAdminID bool
+
 	ForwardTo          int64
 	UploadToAccessHash int64
 	DownloadFolder     string

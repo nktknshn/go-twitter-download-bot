@@ -26,6 +26,7 @@ func (h *Handler) makeMessageText(td *twitter.TweetData) string {
 func (h *Handler) onTwitterURLFromUser(ctx context.Context, entities tg.Entities, user *tg.PeerUser, m *tg.Message) error {
 
 	h.Logger.Info("Received url", zap.String("url", m.Message))
+
 	h.updateQueryCountLimit(user.UserID)
 
 	cq, cqr := h.canQuery(user.UserID)
@@ -60,6 +61,7 @@ func (h *Handler) onTwitterURLFromUser(ctx context.Context, entities tg.Entities
 
 	h.incrPending(user.UserID)
 	h.incrQueries(user.UserID)
+
 	defer h.decrPending(user.UserID)
 
 	var workingMessage *tg.Message

@@ -16,7 +16,6 @@ import (
 )
 
 func Run(ctx context.Context,
-	adminID int64,
 	downloadFolder string,
 	opts ...option,
 ) error {
@@ -34,17 +33,18 @@ func Run(ctx context.Context,
 	}
 
 	handler := &Handler{
-		Logger:         options.logger,
-		Dispatcher:     tg.NewUpdateDispatcher(),
-		DownloadFolder: downloadFolder,
-		AdminID:        adminID,
-		ForwardTo:      options.forwardTo,
-		DebugTelegram:  options.debugTelegram,
-		IncludeText:    options.includeText,
-		IncludeURL:     options.includeURL,
-		IncludeBotName: options.includeBotName,
-		LimitPerDay:    options.limitPerDay,
-		LimitPending:   options.limitPending,
+		Logger:            options.logger,
+		Dispatcher:        tg.NewUpdateDispatcher(),
+		DownloadFolder:    downloadFolder,
+		AdminID:           options.adminID,
+		RestrictToAdminID: options.restrictToAdmin,
+		ForwardTo:         options.forwardTo,
+		DebugTelegram:     options.debugTelegram,
+		IncludeText:       options.includeText,
+		IncludeURL:        options.includeURL,
+		IncludeBotName:    options.includeBotName,
+		LimitPerDay:       options.limitPerDay,
+		LimitPending:      options.limitPending,
 	}
 
 	tgLogger := zap.NewNop()

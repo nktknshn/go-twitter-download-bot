@@ -14,7 +14,7 @@ func (h *Handler) isAdmin(userID int64) bool {
 }
 
 func (h *Handler) adminRestricted() bool {
-	return h.AdminID != 0
+	return h.AdminID != 0 && h.RestrictToAdminID
 }
 
 // create a new user data if not exists
@@ -71,9 +71,14 @@ func (h *Handler) updateQueryCountLimit(userID int64) {
 	}
 }
 
+// admin can query without limits
 func (h *Handler) canQuery(userID int64) (bool, reason) {
 	h.usersMapLock.RLock()
 	defer h.usersMapLock.RUnlock()
+
+	if h.isAdmin(userID) {
+		return true, ""
+	}
 
 	data, ok := h.usersMap[userID]
 	if !ok {

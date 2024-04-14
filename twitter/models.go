@@ -66,6 +66,14 @@ type TweetData struct {
 	Photos   []Photo
 }
 
+func (td *TweetData) NoMedia() bool {
+	return len(td.Videos) == 0 && len(td.Photos) == 0
+}
+
+func (td *TweetData) IsEmpty() bool {
+	return td.NoMedia() && td.Text == "" && td.FullText == ""
+}
+
 func (td *TweetData) BestBitrateVideos() []VideoVariant {
 	bestVariants := make([]VideoVariant, 0)
 	for _, vv := range td.Videos {

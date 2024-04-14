@@ -66,6 +66,7 @@ func (h *Handler) onTwitterURLFromUser(ctx context.Context, entities tg.Entities
 
 	var workingMessage *tg.Message
 	var err error
+	peer := h.inputUser(user)
 
 	if workingMessage, err = h.sendText(ctx, user, "Работаю... Working..."); err != nil {
 		h.Logger.Error("failed to send message", zap.Error(err))
@@ -82,7 +83,23 @@ func (h *Handler) onTwitterURLFromUser(ctx context.Context, entities tg.Entities
 		return errors.Wrap(err, "get twitter data")
 	}
 
+	if td.IsEmpty() {
+		h.Logger.Error("empty tweet data")
+		h.replyError(ctx, user, nil, "Ошибка. Error. Не удалось получить данные из твиттера. Failed to get data from twitter.")
+		return nil
+	}
+
 	h.Logger.Debug("twitter data", zap.Any("data", td))
+
+	messageText := h.makeMessageText(td)
+
+	if td.NoMedia() {
+		_, err := h.sendText(ctx, user, messageText)
+		if err != nil {
+			h.Logger.Error("failed to send message", zap.Error(err))
+		}
+		return nil
+	}
 
 	downloads, err := h.downloader.DownloadTweetData(td, h.DownloadFolder)
 
@@ -91,9 +108,6 @@ func (h *Handler) onTwitterURLFromUser(ctx context.Context, entities tg.Entities
 		h.replyError(ctx, user, err, "Ошибка cкачки. Error downloading.")
 		return errors.Wrap(err, "download tweet data")
 	}
-
-	messageText := h.makeMessageText(td)
-	peer := h.inputUser(user)
 
 	h.Logger.Info("Sending album", zap.Int("count", len(downloads)))
 

@@ -29,8 +29,9 @@ type Handler struct {
 
 	selfUsername string
 
-	includeText bool
-	includeURL  bool
+	includeText    bool
+	includeURL     bool
+	includeBotName bool
 }
 
 func (h *Handler) botName() string {
@@ -69,10 +70,9 @@ func (h *Handler) OnNewMessage(ctx context.Context, entities tg.Entities, u *tg.
 		return nil
 	}
 
-	// if user.UserID != h.AdminID {
-	// not used in this bot
-	// 	return nil
-	// }
+	if h.AdminID != 0 && user.UserID != h.AdminID {
+		return nil
+	}
 
 	if m.Message == "" {
 		return nil

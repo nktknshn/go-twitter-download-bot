@@ -17,14 +17,15 @@ var (
 	flagSessionFile    string = "twitter-downloader-session.json"
 	flagUseLimiter     bool
 
-	flagIncludeText bool
-	flagIncludeURL  bool
+	flagIncludeText    bool
+	flagIncludeURL     bool
+	flagIncludeBotName bool
 )
 
 func init() {
 	CmdBot.AddCommand(cmdStart)
 
-	// cmdStart.PersistentFlags().Int64VarP(&flagAdminID, "admin-id", "a", 0, "admin id")
+	cmdStart.PersistentFlags().Int64VarP(&flagAdminID, "admin-id", "a", 0, "Restrict to a user")
 
 	cmdStart.PersistentFlags().StringVarP(&flagSessionFile, "session-file", "s", flagSessionFile, "session file")
 	cmdStart.PersistentFlags().StringVarP(&flagDownloadFolder, "download-folder", "d", "", "download folder")
@@ -34,6 +35,7 @@ func init() {
 
 	cmdStart.PersistentFlags().BoolVarP(&flagIncludeText, "include-text", "T", false, "include text")
 	cmdStart.PersistentFlags().BoolVarP(&flagIncludeURL, "include-url", "U", false, "include url")
+	cmdStart.PersistentFlags().BoolVarP(&flagIncludeBotName, "include-bot-name", "B", false, "include bot name")
 }
 
 var CmdBot = &cobra.Command{
@@ -64,6 +66,6 @@ func runStart(cmd *cobra.Command, args []string) error {
 		bot.WithDebugTelegram(flagDebug),
 		bot.WithRateLimiter(flagUseLimiter),
 		bot.WithSessionFile(flagSessionFile),
-		bot.WithPostSettings(flagIncludeText, flagIncludeURL),
+		bot.WithPostSettings(flagIncludeText, flagIncludeURL, flagIncludeBotName),
 	)
 }

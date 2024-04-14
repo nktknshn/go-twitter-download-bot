@@ -17,7 +17,9 @@ func (h *Handler) makeMessageText(td *twitter.TweetData) string {
 	if h.includeURL {
 		messageText += td.Url.String() + "\n"
 	}
-	messageText += "@" + h.botName()
+	if h.includeBotName {
+		messageText += "@" + h.botName()
+	}
 	return messageText
 }
 

@@ -9,8 +9,9 @@ type options struct {
 	useRateLimiter bool
 	sessionFile    string
 
-	includeText bool
-	includeURL  bool
+	includeText    bool
+	includeURL     bool
+	includeBotName bool
 }
 
 type option func(*options)
@@ -45,9 +46,10 @@ func WithSessionFile(sessionFile string) option {
 	}
 }
 
-func WithPostSettings(includeText, includeURL bool) option {
+func WithPostSettings(includeText, includeURL, includeBotName bool) option {
 	return func(opts *options) {
 		opts.includeText = includeText
 		opts.includeURL = includeURL
+		opts.includeBotName = includeBotName
 	}
 }

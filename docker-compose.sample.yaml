@@ -7,7 +7,7 @@ services:
       dockerfile: ./Dockerfile
     volumes:
       - bot-data:/data
-    command: /cli bot start -d /data/ -s /data/session.json -f ${FORWARD_TO_ID:-0} -U -T -l
+    command: /cli bot start -d /data/ -s /data/session.json -f ${FORWARD_TO_ID:-0} -U -T -B -l
     environment:
       - APP_ID=${APP_ID}
       - APP_HASH=${APP_HASH}

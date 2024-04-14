@@ -3,3 +3,4 @@ samples
 docker-compose.yaml
 .env
 build/
+build_and_push.sh

@@ -42,6 +42,7 @@ func Run(ctx context.Context,
 		DebugTelegram:  options.debugTelegram,
 		includeText:    options.includeText,
 		includeURL:     options.includeURL,
+		includeBotName: options.includeBotName,
 	}
 
 	tgLogger := zap.NewNop()

@@ -17,7 +17,8 @@ go run main.go bot start -d /data_folder -s -d /data_folder/session.json
   -B, --include-bot-name         include bot name
   -T, --include-text             include text
   -U, --include-url              include url
+  -p, --limit-pending int        limit pending (default 1)
+  -L, --limit-per-day int        limit per day (default 30)
   -s, --session-file string      session file (default "twitter-downloader-session.json")
   -l, --use-limiter              use rate limiter (default true)
-
 ```

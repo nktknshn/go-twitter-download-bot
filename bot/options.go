@@ -12,6 +12,9 @@ type options struct {
 	includeText    bool
 	includeURL     bool
 	includeBotName bool
+
+	limitPerDay  int
+	limitPending int
 }
 
 type option func(*options)
@@ -51,5 +54,12 @@ func WithPostSettings(includeText, includeURL, includeBotName bool) option {
 		opts.includeText = includeText
 		opts.includeURL = includeURL
 		opts.includeBotName = includeBotName
+	}
+}
+
+func WithLimits(limitPerDay, limitPending int) option {
+	return func(opts *options) {
+		opts.limitPerDay = limitPerDay
+		opts.limitPending = limitPending
 	}
 }

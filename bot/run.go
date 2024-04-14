@@ -40,9 +40,11 @@ func Run(ctx context.Context,
 		AdminID:        adminID,
 		ForwardTo:      options.forwardTo,
 		DebugTelegram:  options.debugTelegram,
-		includeText:    options.includeText,
-		includeURL:     options.includeURL,
-		includeBotName: options.includeBotName,
+		IncludeText:    options.includeText,
+		IncludeURL:     options.includeURL,
+		IncludeBotName: options.includeBotName,
+		LimitPerDay:    options.limitPerDay,
+		LimitPending:   options.limitPending,
 	}
 
 	tgLogger := zap.NewNop()
@@ -82,13 +84,12 @@ func Run(ctx context.Context,
 		return telegram.BotFromEnvironment(ctx, tgopts,
 			func(ctx context.Context, client *telegram.Client) error {
 				handler.Logger.Info("Setting up handler")
-				handler.Init(client)
-				return nil
+				return handler.Init(client)
 			},
 			func(ctx context.Context, client *telegram.Client) error {
 				handler.Logger.Info("Connected")
 
-				if err := handler.InitTelegram(ctx); err != nil {
+				if err := handler.OnConnected(ctx); err != nil {
 					return errors.Wrap(err, "failed to get self username")
 				}
 

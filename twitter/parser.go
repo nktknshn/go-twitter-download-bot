@@ -50,7 +50,6 @@ func tryGetKeyString(aMap map[string]interface{}, key string) (string, bool) {
 	val, ok := aMap[key]
 	if ok {
 		str, ok := val.(string)
-
 		if ok {
 			return str, true
 		}
@@ -62,13 +61,10 @@ func tryGetKeyInt(aMap map[string]interface{}, key string) (int, bool) {
 	val, ok := aMap[key]
 	if ok {
 		num, ok := val.(json.Number)
-
 		n, err := num.Int64()
-
 		if err != nil {
 			return 0, false
 		}
-
 		if ok {
 			return int(n), true
 		}

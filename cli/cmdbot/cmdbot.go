@@ -20,6 +20,9 @@ var (
 	flagIncludeText    bool
 	flagIncludeURL     bool
 	flagIncludeBotName bool
+
+	flagLimitPending int = 1
+	flagLimitPerDay  int = 30
 )
 
 func init() {
@@ -36,6 +39,11 @@ func init() {
 	cmdStart.PersistentFlags().BoolVarP(&flagIncludeText, "include-text", "T", false, "include text")
 	cmdStart.PersistentFlags().BoolVarP(&flagIncludeURL, "include-url", "U", false, "include url")
 	cmdStart.PersistentFlags().BoolVarP(&flagIncludeBotName, "include-bot-name", "B", false, "include bot name")
+
+	cmdStart.PersistentFlags().IntVarP(&flagLimitPending, "limit-pending", "p", flagLimitPending, "limit pending")
+
+	cmdStart.PersistentFlags().IntVarP(&flagLimitPerDay, "limit-per-day", "L", flagLimitPerDay, "limit per day")
+
 }
 
 var CmdBot = &cobra.Command{
@@ -67,5 +75,6 @@ func runStart(cmd *cobra.Command, args []string) error {
 		bot.WithRateLimiter(flagUseLimiter),
 		bot.WithSessionFile(flagSessionFile),
 		bot.WithPostSettings(flagIncludeText, flagIncludeURL, flagIncludeBotName),
+		bot.WithLimits(flagLimitPerDay, flagLimitPending),
 	)
 }

@@ -12,11 +12,6 @@ import (
 	"go.uber.org/zap"
 )
 
-// url1: https://x.com/contextdogs/status/1742878545549087076?s=35
-// returns: 1742878545549087076
-// url2: https://twitter.com/contextdogs/status/1742878545549087076
-// returns: 1742878545549087076
-
 func saveBody(resp *resty.Response, path string) error {
 	return os.WriteFile(path, resp.Body(), 0644)
 }
@@ -148,8 +143,6 @@ func (t *Twitter) GetTokens(ctx context.Context, url string) (Tokens, error) {
 	if err != nil {
 		return res, errors.Wrap(err, "failed to get main js url")
 	}
-
-	// "Bearer AAAAAAAAAAAAAAAAAAAAANRILgAAAAAAnNwIzUejRCOuH5E6I8xnZz4puTs%3D1Zv7ttfk8LF81IUq16cHjhLTvJu4FA33AGWWjCpTnA"
 
 	rexBearerToken := regexp.MustCompile(`Bearer ([a-zA-Z0-9%]+)`)
 

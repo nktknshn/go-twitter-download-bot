@@ -7,8 +7,8 @@ import (
 	"github.com/gotd/td/tg"
 )
 
-func (h *Handler) InitTelegram(ctx context.Context) error {
-	if err := h.InitSelfUsername(ctx); err != nil {
+func (h *Handler) OnConnected(ctx context.Context) error {
+	if err := h.initSelfUsername(ctx); err != nil {
 		return errors.Wrap(err, "init self username")
 	}
 
@@ -16,14 +16,14 @@ func (h *Handler) InitTelegram(ctx context.Context) error {
 		return nil
 	}
 
-	if err := h.InitChannelAccessHash(ctx); err != nil {
+	if err := h.initChannelAccessHash(ctx); err != nil {
 		return errors.Wrap(err, "init channel access hash")
 	}
 
 	return nil
 }
 
-func (h *Handler) InitSelfUsername(ctx context.Context) error {
+func (h *Handler) initSelfUsername(ctx context.Context) error {
 	if h.selfUsername != "" {
 		return nil
 	}
@@ -48,7 +48,7 @@ func (h *Handler) InitSelfUsername(ctx context.Context) error {
 	return nil
 }
 
-func (h *Handler) InitChannelAccessHash(ctx context.Context) error {
+func (h *Handler) initChannelAccessHash(ctx context.Context) error {
 	if h.ForwardTo == 0 {
 		return errors.New("channel id is not set")
 	}

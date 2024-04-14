@@ -2,6 +2,9 @@ package bot
 
 import (
 	"context"
+	"fmt"
+	"sync"
+	"time"
 
 	"github.com/gotd/td/telegram"
 	"github.com/gotd/td/telegram/message"
@@ -29,21 +32,39 @@ type Handler struct {
 
 	selfUsername string
 
-	includeText    bool
-	includeURL     bool
-	includeBotName bool
+	IncludeText    bool
+	IncludeURL     bool
+	IncludeBotName bool
+
+	LimitPerDay  int
+	LimitPending int
+
+	usersMap     map[int64]*UserData
+	usersMapLock sync.RWMutex
+
+	NowFunc func() time.Time
 }
 
 func (h *Handler) botName() string {
 	return h.selfUsername
 }
 
-func (h *Handler) Init(client *telegram.Client) {
+func (h *Handler) Init(client *telegram.Client) error {
+
+	if h.NowFunc == nil {
+		h.NowFunc = time.Now
+	}
+
+	h.usersMap = make(map[int64]*UserData)
+	h.usersMapLock = sync.RWMutex{}
+
 	h.Api = tg.NewClient(client)
 	h.Sender = message.NewSender(h.Api)
 	h.twitter = twitter.NewTwitter()
 	h.downloader = NewDownloader()
-	h.Dispatcher.OnNewMessage(h.OnNewMessage)
+	h.Dispatcher.OnNewMessage(h.onNewMessage)
+
+	return nil
 }
 
 func (h *Handler) Handle(ctx context.Context, u tg.UpdatesClass) error {
@@ -53,7 +74,7 @@ func (h *Handler) Handle(ctx context.Context, u tg.UpdatesClass) error {
 	return h.Dispatcher.Handle(ctx, u)
 }
 
-func (h *Handler) OnNewMessage(ctx context.Context, entities tg.Entities, u *tg.UpdateNewMessage) error {
+func (h *Handler) onNewMessage(ctx context.Context, entities tg.Entities, u *tg.UpdateNewMessage) error {
 	m, ok := u.Message.(*tg.Message)
 
 	if !ok {
@@ -70,7 +91,7 @@ func (h *Handler) OnNewMessage(ctx context.Context, entities tg.Entities, u *tg.
 		return nil
 	}
 
-	if h.AdminID != 0 && user.UserID != h.AdminID {
+	if h.adminRestricted() && !h.isAdmin(user.UserID) {
 		return nil
 	}
 
@@ -78,33 +99,43 @@ func (h *Handler) OnNewMessage(ctx context.Context, entities tg.Entities, u *tg.
 		return nil
 	}
 
-	return h.OnNewMessageTextFromUser(ctx, entities, user, m)
+	return h.onNewMessageTextFromUser(ctx, entities, user, m)
 }
 
-func (h *Handler) OnStart(ctx context.Context, entities tg.Entities, user *tg.PeerUser, m *tg.Message) error {
-	msg := "Отправь ссылку на пост в твиттер и я скачаю фото или видео.\nSend me a link to a tweet and I will download the photo or video."
-	if _, err := h.SendText(ctx, user, msg); err != nil {
-		h.Logger.Error("failed to send message", zap.Error(err))
-	}
-	return nil
-}
+func (h *Handler) onNewMessageTextFromUser(ctx context.Context, entities tg.Entities, user *tg.PeerUser, m *tg.Message) error {
 
-func (h *Handler) OnNewMessageTextFromUser(ctx context.Context, entities tg.Entities, user *tg.PeerUser, m *tg.Message) error {
+	h.initUser(user.UserID)
+
 	if m.Message == "/start" {
-		return h.OnStart(ctx, entities, user, m)
+		return h.onStart(ctx, entities, user, m)
 	}
 
 	if !twitter.IsValidTwitterURL(m.Message) {
 		return nil
 	}
 
-	return h.OnTwitterURLFromUser(ctx, entities, user, m)
+	return h.onTwitterURLFromUser(ctx, entities, user, m)
 }
 
-func (h *Handler) SendText(ctx context.Context, user *tg.PeerUser, text string) (*tg.Message, error) {
+func (h *Handler) onStart(ctx context.Context, entities tg.Entities, user *tg.PeerUser, m *tg.Message) error {
+	msg := "Отправь ссылку на пост в твиттер и я скачаю фото или видео.\nSend me a link to a tweet and I will download the photo or video."
+	if _, err := h.sendText(ctx, user, msg); err != nil {
+		h.Logger.Error("failed to send message", zap.Error(err))
+	}
+	return nil
+}
+func (h *Handler) sendTextf(ctx context.Context, user *tg.PeerUser, format string, args ...interface{}) (*tg.Message, error) {
+	return h.sendText(ctx, user, fmt.Sprintf(format, args...))
+}
+
+func (h *Handler) sendText(ctx context.Context, user *tg.PeerUser, text string) (*tg.Message, error) {
 	return unpack.Message(h.Sender.To(h.inputUser(user)).Text(ctx, text))
 }
 
-func (h *Handler) ReplyError(ctx context.Context, user *tg.PeerUser, err error, msg string) {
-	_, _ = h.SendText(ctx, user, "Ошибка. Error. "+msg+"Попробуйте отправить ещё раз. Try Again.")
+func (h *Handler) replyErrorf(ctx context.Context, user *tg.PeerUser, err error, format string, args ...interface{}) {
+	h.replyError(ctx, user, err, fmt.Sprintf(format, args...))
+}
+
+func (h *Handler) replyError(ctx context.Context, user *tg.PeerUser, err error, msg string) {
+	_, _ = h.sendText(ctx, user, "Ошибка. Error. "+msg+"Попробуйте отправить ещё раз. Try Again.")
 }

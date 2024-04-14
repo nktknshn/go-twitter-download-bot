@@ -139,5 +139,5 @@ func (h *Handler) replyErrorf(ctx context.Context, user *tg.PeerUser, err error,
 }
 
 func (h *Handler) replyError(ctx context.Context, user *tg.PeerUser, err error, msg string) {
-	_, _ = h.sendText(ctx, user, "Ошибка. Error. "+msg+" Попробуйте отправить ещё раз. Try again.")
+	_, _ = h.sendText(ctx, user, msg+" Попробуйте отправить ещё раз. Try again.")
 }

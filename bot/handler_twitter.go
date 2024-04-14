@@ -85,7 +85,7 @@ func (h *Handler) onTwitterURLFromUser(ctx context.Context, entities tg.Entities
 
 	if td.IsEmpty() {
 		h.Logger.Info("empty tweet data")
-		h.replyError(ctx, user, nil, "Ошибка. Error. Не удалось получить данные из твиттера. Failed to get data from twitter.")
+		h.replyError(ctx, user, nil, "Не удалось получить данные из твиттера. Failed to get data from twitter.")
 		return nil
 	}
 

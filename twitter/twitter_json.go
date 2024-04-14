@@ -22,6 +22,10 @@ func (tp *TwitterParser) ParseMap(aMap map[string]interface{}) {
 	}
 
 	if ft, ok := tryParseFullText(aMap); ok {
+		tp.d.FullText = ft
+	}
+
+	if ft, ok := tryParseText(aMap); ok {
 		tp.d.Text = ft
 	}
 
@@ -116,6 +120,13 @@ func tryParseVideoData(aMap map[string]interface{}) (VideoVariant, bool) {
 }
 
 func tryParseFullText(aMap map[string]interface{}) (string, bool) {
+	if fullText, ok := tryGetKeyString(aMap, "full_text"); ok {
+		return fullText, true
+	}
+
+	return "", false
+}
+func tryParseText(aMap map[string]interface{}) (string, bool) {
 	if fullText, ok := tryGetKeyString(aMap, "text"); ok {
 		return fullText, true
 	}

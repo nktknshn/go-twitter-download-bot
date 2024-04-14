@@ -12,7 +12,7 @@ import (
 func (h *Handler) makeMessageText(td *twitter.TweetData) string {
 	messageText := ""
 	if h.includeText && td.CleanText() != "" {
-		messageText += td.CleanText() + "\n"
+		messageText += td.TweetText() + "\n"
 	}
 	if h.includeURL {
 		messageText += td.Url.String() + "\n"

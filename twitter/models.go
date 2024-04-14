@@ -59,10 +59,11 @@ func (vv VideoVariants) VideoBestBitrate() (VideoVariant, bool) {
 }
 
 type TweetData struct {
-	Url    TwitterURL
-	Text   string
-	Videos []Video
-	Photos []Photo
+	Url      TwitterURL
+	FullText string
+	Text     string
+	Videos   []Video
+	Photos   []Photo
 }
 
 func (td *TweetData) BestBitrateVideos() []VideoVariant {
@@ -78,12 +79,19 @@ func (td *TweetData) BestBitrateVideos() []VideoVariant {
 }
 
 func (td *TweetData) String() string {
-	return fmt.Sprintf("Videos: %v, Photos: %v, Text: %s", td.BestBitrateVideos(), td.Photos, td.CleanText())
+	return fmt.Sprintf("Videos: %v, Photos: %v, FullText: %s, Text: %s", td.BestBitrateVideos(), td.Photos, td.CleanText(), td.Text)
 }
 
 // strip https://t.co/* in the end
 func (td *TweetData) CleanText() string {
-	return regexp.MustCompile(`https://t.co/\w+$`).ReplaceAllString(td.Text, "")
+	return regexp.MustCompile(`https://t.co/\w+$`).ReplaceAllString(td.FullText, "")
+}
+
+func (td *TweetData) TweetText() string {
+	if td.Text != "" {
+		return td.Text
+	}
+	return td.CleanText()
 }
 
 func (td *TweetData) AddPhoto(pd Photo) {

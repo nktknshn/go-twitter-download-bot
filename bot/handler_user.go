@@ -10,11 +10,11 @@ type UserData struct {
 }
 
 func (h *Handler) isAdmin(userID int64) bool {
-	return userID == h.AdminID
+	return userID == h.adminID
 }
 
 func (h *Handler) adminRestricted() bool {
-	return h.AdminID != 0 && h.RestrictToAdminID
+	return h.adminID != 0 && h.restrictToAdminID
 }
 
 // create a new user data if not exists
@@ -45,7 +45,7 @@ func (h *Handler) incrQueries(userID int64) {
 	h.usersMapLock.Lock()
 	defer h.usersMapLock.Unlock()
 	h.usersMap[userID].QueriesToday++
-	h.usersMap[userID].LastQueryTime = h.NowFunc()
+	h.usersMap[userID].LastQueryTime = h.nowFunc()
 }
 
 type reason string
@@ -66,7 +66,7 @@ func (h *Handler) updateQueryCountLimit(userID int64) {
 		return
 	}
 
-	if data.LastQueryTime.Day() != h.NowFunc().Day() {
+	if data.LastQueryTime.Day() != h.nowFunc().Day() {
 		data.QueriesToday = 0
 	}
 }
@@ -85,11 +85,11 @@ func (h *Handler) canQuery(userID int64) (bool, reason) {
 		return false, reasonNoUser
 	}
 
-	if data.QueriesToday >= h.LimitPerDay {
+	if data.QueriesToday >= h.limitPerDay {
 		return false, reasonLimit
 	}
 
-	if data.PendingQueires >= h.LimitPending {
+	if data.PendingQueires >= h.limitPending {
 		return false, reasonPending
 	}
 

@@ -10,7 +10,7 @@ import (
 func (h *Handler) removeMessage(ctx context.Context, m *tg.Message) {
 	h.Logger.Info("Removing message", zap.Any("message", m.ID))
 
-	if _, err := h.Api.MessagesDeleteMessages(ctx, &tg.MessagesDeleteMessagesRequest{
+	if _, err := h.api.MessagesDeleteMessages(ctx, &tg.MessagesDeleteMessagesRequest{
 		ID:     []int{m.ID},
 		Revoke: true,
 	}); err != nil {
@@ -27,13 +27,13 @@ func (h *Handler) inputUser(user *tg.PeerUser) tg.InputPeerClass {
 
 func (h *Handler) inputUserAdmin() tg.InputPeerClass {
 	return &tg.InputPeerUser{
-		UserID:     h.AdminID,
+		UserID:     h.adminID,
 		AccessHash: 0,
 	}
 }
 func (h *Handler) inputChannelPeer() tg.InputPeerClass {
 	return &tg.InputPeerChannel{
-		ChannelID:  h.ForwardTo,
-		AccessHash: h.UploadToAccessHash,
+		ChannelID:  h.forwardTo,
+		AccessHash: h.uploadToAccessHash,
 	}
 }

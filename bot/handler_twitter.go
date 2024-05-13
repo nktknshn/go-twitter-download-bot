@@ -33,7 +33,7 @@ func (h *Handler) onTwitterURLFromUser(ctx context.Context, entities tg.Entities
 
 	if !cq && cqr == reasonLimit {
 		h.Logger.Info("Limit exceeded", zap.Int64("user", user.UserID))
-		_, err := h.sendTextf(ctx, user, "Превышен лимит запросов в день (%d). Exceeded the limit of requests per day (%d).", h.LimitPerDay, h.LimitPerDay)
+		_, err := h.sendTextf(ctx, user, "Превышен лимит запросов в день (%d). Exceeded the limit of requests per day (%d).", h.limitPerDay, h.limitPerDay)
 
 		if err != nil {
 			h.Logger.Error("failed to send message", zap.Error(err))
@@ -101,7 +101,7 @@ func (h *Handler) onTwitterURLFromUser(ctx context.Context, entities tg.Entities
 		return nil
 	}
 
-	downloads, err := h.downloader.DownloadTweetData(td, h.DownloadFolder)
+	downloads, err := h.downloader.DownloadTweetData(td, h.downloadFolder)
 
 	if err != nil {
 		h.Logger.Error("failed to download tweet data", zap.Error(err))
@@ -119,7 +119,7 @@ func (h *Handler) onTwitterURLFromUser(ctx context.Context, entities tg.Entities
 		return errors.Wrap(err, "upload files")
 	}
 
-	sentMsgs, err := UnpackMultipleMessages(h.Sender.To(peer).
+	sentMsgs, err := UnpackMultipleMessages(h.sender.To(peer).
 		Album(ctx, uploads[0], uploads[1:]...))
 
 	if err != nil {
@@ -128,7 +128,7 @@ func (h *Handler) onTwitterURLFromUser(ctx context.Context, entities tg.Entities
 		return errors.Wrap(err, "send media group")
 	}
 
-	if h.ForwardTo == 0 {
+	if h.forwardTo == 0 {
 		return nil
 	}
 
@@ -138,9 +138,9 @@ func (h *Handler) onTwitterURLFromUser(ctx context.Context, entities tg.Entities
 		sentMsgsIDs[i] = sentMsg.ID
 	}
 
-	h.Logger.Info("Forwarding to channel", zap.Int64("channel", h.ForwardTo))
+	h.Logger.Info("Forwarding to channel", zap.Int64("channel", h.forwardTo))
 
-	_, err = h.Sender.To(h.inputChannelPeer()).
+	_, err = h.sender.To(h.inputChannelPeer()).
 		ForwardIDs(h.inputUser(user), sentMsgsIDs[0], sentMsgsIDs[1:]...).
 		Send(ctx)
 

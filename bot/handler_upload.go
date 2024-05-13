@@ -12,12 +12,12 @@ import (
 )
 
 func (h *Handler) uploader() *uploader.Uploader {
-	return uploader.NewUploader(h.Api)
+	return uploader.NewUploader(h.api)
 }
 
 func (h *Handler) uploaderWithSender() (*uploader.Uploader, *message.Sender) {
 	uploader := h.uploader()
-	sender := h.Sender.WithUploader(uploader)
+	sender := h.sender.WithUploader(uploader)
 	return uploader, sender
 }
 

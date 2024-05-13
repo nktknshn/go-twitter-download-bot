@@ -36,7 +36,7 @@ func (h *Handler) uploadDownloadsRaw(ctx context.Context, peer tg.InputPeerClass
 			// attach media to a peer creating ID, FileReference and AccessHash
 			// https://core.telegram.org/method/messages.uploadMedia
 			// Upload a file and associate it to a chat (without actually sending it to the chat)
-			media, err := h.Api.MessagesUploadMedia(ctx, &tg.MessagesUploadMediaRequest{
+			media, err := h.api.MessagesUploadMedia(ctx, &tg.MessagesUploadMediaRequest{
 				Peer: peer,
 				// file uploaded in chunks
 				Media: &tg.InputMediaUploadedPhoto{File: u},
@@ -68,7 +68,7 @@ func (h *Handler) uploadDownloadsRaw(ctx context.Context, peer tg.InputPeerClass
 		} else if d.IsVideo() {
 			h.Logger.Info("Adding video", zap.String("path", d.Path))
 
-			media, err := h.Api.MessagesUploadMedia(ctx, &tg.MessagesUploadMediaRequest{
+			media, err := h.api.MessagesUploadMedia(ctx, &tg.MessagesUploadMediaRequest{
 				Peer: peer,
 				Media: &tg.InputMediaUploadedDocument{
 					File:     u,
@@ -118,7 +118,7 @@ func (h *Handler) uploadDownloadsRaw(ctx context.Context, peer tg.InputPeerClass
 
 	h.Logger.Info("Sending media", zap.Int("count", len(multiMedia)), zap.Any("req", req))
 
-	uploadedMessage, err := unpack.Message(h.Api.MessagesSendMultiMedia(ctx, req))
+	uploadedMessage, err := unpack.Message(h.api.MessagesSendMultiMedia(ctx, req))
 
 	if err != nil {
 		return errors.Wrap(err, "failed to send message")

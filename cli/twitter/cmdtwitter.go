@@ -1,4 +1,4 @@
-package cmdtwitter
+package twitter
 
 import (
 	"fmt"
@@ -7,13 +7,19 @@ import (
 	"github.com/spf13/cobra"
 )
 
+var (
+	flagSaveData bool
+)
+
 func init() {
-	CmdTwitter.AddCommand(cmdGetTokens)
-	CmdTwitter.AddCommand(cmdGetData)
+	Cmd.AddCommand(cmdGetTokens)
+	Cmd.AddCommand(cmdGetData)
+
+	cmdGetData.PersistentFlags().BoolVarP(&flagSaveData, "save-data", "s", false, "save data to file")
 }
 
 var (
-	CmdTwitter = &cobra.Command{
+	Cmd = &cobra.Command{
 		Use:   "twitter",
 		Short: "twitter is a command line interface for twitter",
 		Args:  cobra.MinimumNArgs(1),
@@ -44,8 +50,12 @@ func runGetTokens(cmd *cobra.Command, args []string) error {
 }
 
 func runGetData(cmd *cobra.Command, args []string) error {
-	tw := twitter.NewTwitter()
+	tw := twitter.NewTwitter(
+		twitter.WithSaveData(flagSaveData),
+	)
+
 	td, err := tw.GetTwitterData(cmd.Context(), args[0])
+
 	if err != nil {
 		return err
 	}

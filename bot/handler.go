@@ -17,17 +17,17 @@ import (
 type Handler struct {
 	Logger *zap.Logger
 
-	Dispatcher tg.UpdateDispatcher
-	Api        *tg.Client
-	Sender     *message.Sender
+	dispatcher tg.UpdateDispatcher
+	api        *tg.Client
+	sender     *message.Sender
 
-	DebugTelegram     bool
-	AdminID           int64
-	RestrictToAdminID bool
+	debugTelegram     bool
+	adminID           int64
+	restrictToAdminID bool
 
-	ForwardTo          int64
-	UploadToAccessHash int64
-	DownloadFolder     string
+	forwardTo          int64
+	uploadToAccessHash int64
+	downloadFolder     string
 
 	twitter    *twitter.Twitter
 	downloader *Downloader
@@ -38,13 +38,13 @@ type Handler struct {
 	IncludeURL     bool
 	IncludeBotName bool
 
-	LimitPerDay  int
-	LimitPending int
+	limitPerDay  int
+	limitPending int
 
 	usersMap     map[int64]*UserData
 	usersMapLock sync.RWMutex
 
-	NowFunc func() time.Time
+	nowFunc func() time.Time
 }
 
 func (h *Handler) botName() string {
@@ -53,27 +53,27 @@ func (h *Handler) botName() string {
 
 func (h *Handler) Init(client *telegram.Client) error {
 
-	if h.NowFunc == nil {
-		h.NowFunc = time.Now
+	if h.nowFunc == nil {
+		h.nowFunc = time.Now
 	}
 
 	h.usersMap = make(map[int64]*UserData)
 	h.usersMapLock = sync.RWMutex{}
 
-	h.Api = tg.NewClient(client)
-	h.Sender = message.NewSender(h.Api)
+	h.api = tg.NewClient(client)
+	h.sender = message.NewSender(h.api)
 	h.twitter = twitter.NewTwitter()
 	h.downloader = NewDownloader()
-	h.Dispatcher.OnNewMessage(h.onNewMessage)
+	h.dispatcher.OnNewMessage(h.onNewMessage)
 
 	return nil
 }
 
 func (h *Handler) Handle(ctx context.Context, u tg.UpdatesClass) error {
-	if h.DebugTelegram {
+	if h.debugTelegram {
 		h.Logger.Debug("update", zap.Any("update", u))
 	}
-	return h.Dispatcher.Handle(ctx, u)
+	return h.dispatcher.Handle(ctx, u)
 }
 
 func (h *Handler) onNewMessage(ctx context.Context, entities tg.Entities, u *tg.UpdateNewMessage) error {
@@ -131,7 +131,7 @@ func (h *Handler) sendTextf(ctx context.Context, user *tg.PeerUser, format strin
 }
 
 func (h *Handler) sendText(ctx context.Context, user *tg.PeerUser, text string) (*tg.Message, error) {
-	return unpack.Message(h.Sender.To(h.inputUser(user)).Text(ctx, text))
+	return unpack.Message(h.sender.To(h.inputUser(user)).Text(ctx, text))
 }
 
 func (h *Handler) replyErrorf(ctx context.Context, user *tg.PeerUser, err error, format string, args ...interface{}) {

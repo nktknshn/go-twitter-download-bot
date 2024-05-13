@@ -1,4 +1,4 @@
-package cmdbot
+package bot
 
 import (
 	"fmt"
@@ -27,7 +27,7 @@ var (
 )
 
 func init() {
-	CmdBot.AddCommand(cmdStart)
+	Cmd.AddCommand(cmdStart)
 
 	cmdStart.PersistentFlags().Int64VarP(&flagAdminID, "admin-id", "a", 0, "admin id")
 	cmdStart.PersistentFlags().BoolVarP(&flagRestrictToAdminID, "restrict-to-admin-id", "r", flagRestrictToAdminID, "Restrict usage to admin id")
@@ -48,7 +48,7 @@ func init() {
 
 }
 
-var CmdBot = &cobra.Command{
+var Cmd = &cobra.Command{
 	Use:   "bot",
 	Short: "bot is a command line interface for telegram bot",
 	Args:  cobra.MinimumNArgs(1),

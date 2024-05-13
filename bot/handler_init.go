@@ -12,7 +12,7 @@ func (h *Handler) OnConnected(ctx context.Context) error {
 		return errors.Wrap(err, "init self username")
 	}
 
-	if h.ForwardTo == 0 {
+	if h.forwardTo == 0 {
 		return nil
 	}
 
@@ -28,7 +28,7 @@ func (h *Handler) initSelfUsername(ctx context.Context) error {
 		return nil
 	}
 
-	self, err := h.Api.UsersGetUsers(ctx, []tg.InputUserClass{&tg.InputUserSelf{}})
+	self, err := h.api.UsersGetUsers(ctx, []tg.InputUserClass{&tg.InputUserSelf{}})
 
 	if err != nil {
 		return errors.Wrap(err, "get self")
@@ -49,16 +49,16 @@ func (h *Handler) initSelfUsername(ctx context.Context) error {
 }
 
 func (h *Handler) initChannelAccessHash(ctx context.Context) error {
-	if h.ForwardTo == 0 {
+	if h.forwardTo == 0 {
 		return errors.New("channel id is not set")
 	}
 
-	if h.UploadToAccessHash != 0 {
+	if h.uploadToAccessHash != 0 {
 		return nil
 	}
 
-	chatsClass, err := h.Api.ChannelsGetChannels(ctx, []tg.InputChannelClass{
-		&tg.InputChannel{ChannelID: h.ForwardTo},
+	chatsClass, err := h.api.ChannelsGetChannels(ctx, []tg.InputChannelClass{
+		&tg.InputChannel{ChannelID: h.forwardTo},
 	})
 
 	if err != nil {
@@ -77,7 +77,7 @@ func (h *Handler) initChannelAccessHash(ctx context.Context) error {
 		return errors.New("not a channel")
 	}
 
-	h.UploadToAccessHash = channel.AccessHash
+	h.uploadToAccessHash = channel.AccessHash
 
 	return nil
 }

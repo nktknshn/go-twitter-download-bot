@@ -34,22 +34,22 @@ func Run(ctx context.Context,
 
 	handler := &Handler{
 		Logger:            options.logger,
-		Dispatcher:        tg.NewUpdateDispatcher(),
-		DownloadFolder:    downloadFolder,
-		AdminID:           options.adminID,
-		RestrictToAdminID: options.restrictToAdmin,
-		ForwardTo:         options.forwardTo,
-		DebugTelegram:     options.debugTelegram,
+		dispatcher:        tg.NewUpdateDispatcher(),
+		downloadFolder:    downloadFolder,
+		adminID:           options.adminID,
+		restrictToAdminID: options.restrictToAdmin,
+		forwardTo:         options.forwardTo,
+		debugTelegram:     options.debugTelegram,
 		IncludeText:       options.includeText,
 		IncludeURL:        options.includeURL,
 		IncludeBotName:    options.includeBotName,
-		LimitPerDay:       options.limitPerDay,
-		LimitPending:      options.limitPending,
+		limitPerDay:       options.limitPerDay,
+		limitPending:      options.limitPending,
 	}
 
 	tgLogger := zap.NewNop()
 
-	if handler.DebugTelegram {
+	if handler.debugTelegram {
 		tgLogger = logging.GetLogger().Named("telegram")
 	}
 

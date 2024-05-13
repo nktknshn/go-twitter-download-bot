@@ -1,14 +1,14 @@
 package cli
 
 import (
-	"github.com/nktknshn/go-twitter-download-bot/cli/cmdbot"
-	"github.com/nktknshn/go-twitter-download-bot/cli/cmdtwitter"
+	"github.com/nktknshn/go-twitter-download-bot/cli/bot"
+	"github.com/nktknshn/go-twitter-download-bot/cli/twitter"
 	"github.com/spf13/cobra"
 )
 
 func init() {
-	CmdRoot.AddCommand(cmdtwitter.CmdTwitter)
-	CmdRoot.AddCommand(cmdbot.CmdBot)
+	CmdRoot.AddCommand(twitter.Cmd)
+	CmdRoot.AddCommand(bot.Cmd)
 }
 
 var CmdRoot = &cobra.Command{

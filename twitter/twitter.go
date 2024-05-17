@@ -17,9 +17,9 @@ func saveBody(resp *resty.Response, path string) error {
 	return os.WriteFile(path, resp.Body(), 0644)
 }
 
-// var logger *zap.Logger = zap.NewNop()
+var logger *zap.Logger = zap.NewNop()
 
-var logger *zap.Logger = zap.Must(zap.NewDevelopmentConfig().Build())
+// var logger *zap.Logger = zap.Must(zap.NewDevelopmentConfig().Build())
 
 type TwitterURL struct {
 	User string
@@ -124,7 +124,7 @@ func (t *Twitter) GetTokens(ctx context.Context, url string) (Tokens, error) {
 	}
 
 	resp, err := t.httpClient.R().
-		SetDebug(true).
+		// SetDebug(true).
 		SetContext(ctx).
 		SetCookie(&http.Cookie{Name: "guest_id", Value: "111"}).
 		SetCookie(&http.Cookie{Name: "night_mode", Value: "2"}).

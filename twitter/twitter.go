@@ -17,6 +17,8 @@ func saveBody(resp *resty.Response, path string) error {
 	return os.WriteFile(path, resp.Body(), 0644)
 }
 
+// var logger *zap.Logger = zap.NewNop()
+
 var logger *zap.Logger = zap.Must(zap.NewDevelopmentConfig().Build())
 
 type TwitterURL struct {
@@ -25,7 +27,7 @@ type TwitterURL struct {
 }
 
 func (tu *TwitterURL) String() string {
-	return fmt.Sprintf("https://twitter.com/%s/status/%s", tu.User, tu.ID)
+	return fmt.Sprintf("https://x.com/%s/status/%s", tu.User, tu.ID)
 }
 
 var rexURL = regexp.MustCompile(`https://(?:www\.)?(twitter|x)\.com/(?P<user>[^/]+)/status/(?P<id>\d+)`)
@@ -121,7 +123,14 @@ func (t *Twitter) GetTokens(ctx context.Context, url string) (Tokens, error) {
 		return res, errors.Wrap(err, "failed to parse twitter url")
 	}
 
-	resp, err := t.httpClient.R().SetContext(ctx).Get(turl.String())
+	resp, err := t.httpClient.R().
+		SetDebug(true).
+		SetContext(ctx).
+		SetCookie(&http.Cookie{Name: "guest_id", Value: "111"}).
+		SetCookie(&http.Cookie{Name: "night_mode", Value: "2"}).
+		SetHeader("User-Agent", "Mozilla/5.0 (X11; Linux x86_64; rv:109.0) Gecko/20100101 Firefox/115.0").
+		SetHeader("Accept", "*/*").
+		Get(turl.String())
 
 	if err != nil {
 		return res, errors.Wrap(err, "failed to get twitter url")
@@ -136,7 +145,6 @@ func (t *Twitter) GetTokens(ctx context.Context, url string) (Tokens, error) {
 	// https://abs.twimg.com/responsive-web/client-web-legacy/main.3ba1b53a.js
 	// https://abs.twimg.com/responsive-web/client-web/main.3b59231a.js
 	rextGuestToken := regexp.MustCompile(`cookie="gt=(\d+)`)
-	rexMainJsURL := regexp.MustCompile(`https://abs.twimg.com/responsive-web/client-web-legacy/main\.[a-f0-9]+\.js`)
 
 	matchGuestToken := rextGuestToken.FindStringSubmatch(string(resp.Body()))
 
@@ -145,6 +153,8 @@ func (t *Twitter) GetTokens(ctx context.Context, url string) (Tokens, error) {
 	}
 
 	res.GuestToken = matchGuestToken[1]
+
+	rexMainJsURL := regexp.MustCompile(`https://abs.twimg.com/responsive-web/client-web-legacy/main\.[a-f0-9]+\.js`)
 
 	matchMainJsURL := rexMainJsURL.FindStringSubmatch(string(resp.Body()))
 
